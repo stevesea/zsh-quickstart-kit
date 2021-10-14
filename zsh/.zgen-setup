@@ -125,16 +125,24 @@ load-starter-plugin-list() {
   if [[ ! -f ~/.zsh-quickstart-no-omz ]]; then
     # Load some oh-my-zsh plugins
     zgenom oh-my-zsh plugins/pip
-    zgenom oh-my-zsh plugins/sudo
-    zgenom oh-my-zsh plugins/aws
-    zgenom oh-my-zsh plugins/chruby
+    #zgenom oh-my-zsh plugins/sudo
+    #zgenom oh-my-zsh plugins/aws
+    #zgenom oh-my-zsh plugins/chruby
     zgenom oh-my-zsh plugins/colored-man-pages
     zgenom oh-my-zsh plugins/git
     zgenom oh-my-zsh plugins/github
     zgenom oh-my-zsh plugins/python
     zgenom oh-my-zsh plugins/rsync
-    zgenom oh-my-zsh plugins/screen
-    zgenom oh-my-zsh plugins/vagrant
+    #zgenom oh-my-zsh plugins/screen
+    #zgenom oh-my-zsh plugins/vagrant
+
+    zgenom oh-my-zsh plugins/asdf
+    zgenom oh-my-zsh plugins/docker
+    zgenom oh-my-zsh plugins/gcloud
+    #zgenom oh-my-zsh plugins/git-extras
+    zgenom oh-my-zsh plugins/kubectl
+    #zgenom oh-my-zsh plugins/pipenv
+    zgenom oh-my-zsh plugins/zsh-navigation-tools
 
     if [ $(uname -a | grep -ci Darwin) = 1 ]; then
       # Load macOS-specific plugins
@@ -143,6 +151,7 @@ load-starter-plugin-list() {
     fi
   fi
 
+  zgenom load MichaelAquilina/zsh-autoswitch-virtualenv
 
   # A set of shell functions to make it easy to install small apps and
   # utilities distributed with pip.
