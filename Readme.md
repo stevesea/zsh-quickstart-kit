@@ -37,6 +37,7 @@
   - [I get a git error when I try to update the kit](#i-get-a-git-error-when-i-try-to-update-the-kit)
   - [GNU stow complains with a warning that stowing zsh would cause conflicts](#gnu-stow-complains-with-a-warning-that-stowing-zsh-would-cause-conflicts)
   - [_arguments:comparguments:325: can only be called from completion function](#_argumentscomparguments325-can-only-be-called-from-completion-function)
+  - [Could not open a connection to your authentication agent](#could-not-open-a-connection-to-your-authentication-agent)
 - [Other Resources](#other-resources)
   - [ZSH](#zsh)
   - [Dotfiles in general](#dotfiles-in-general)
@@ -284,6 +285,10 @@ Per @jefheaton, this is caused when trying to replace an existing `.zshrc` file.
 ### _arguments:comparguments:325: can only be called from completion function
 
 This has been solved by running `zgen update` or switching to [zgenom](https://github.com/jandamm/zgenom). New users of the kit should already be running `zgenom`. Thanks @RonanJackson for reporting the fix.
+
+### Could not open a connection to your authentication agent
+
+Confirm that `ssh-agent` is running. If not, Rob Montero has a good [blog post](https://rob.cr/blog/using-ssh-agent-mac-os-x/) on setting up `ssh-agent` on macOS, and here are [instructions](https://wiki.archlinux.org/title/SSH_keys#Start_ssh-agent_with_systemd_user) for starting `ssh-agent` with `systemd` on Linux.
 
 ## Other Resources
 
