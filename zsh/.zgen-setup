@@ -141,6 +141,7 @@ load-starter-plugin-list() {
     zgenom oh-my-zsh plugins/gcloud
     #zgenom oh-my-zsh plugins/git-extras
     zgenom oh-my-zsh plugins/kubectl
+    zgenom oh-my-zsh plugins/terraform
     #zgenom oh-my-zsh plugins/pipenv
     zgenom oh-my-zsh plugins/zsh-navigation-tools
 
