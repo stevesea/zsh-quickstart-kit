@@ -7,32 +7,45 @@ brew setup
 ```shell
 brew tap homebrew/cask
 brew tap homebrew/cask-fonts
+brew tap instrumenta/instrumenta
 
 brew install \
     age \
+    asdf \
     bash \
     bpython \
+    dive \
     fzf \
     gh \
     gh \
+    gibo \
     git \
     git-extras \
+    gnupg \
     gradle \
     httpie \
     jq \
+    k9s \
+    kubernets-cli \
+    kubectx \
+    kubeval \
     maven \
     mercurial \
     pipenv \
     poetry \
+    python-yq \
     pwgen \
+    skaffold \
     sops \
+    step \
+    stern \
     stow \
     subversion \
     tree \
     unzip \
     vim \
     xz \
-    zsh 
+    zsh
 
 brew install \
     font-atkinson-hyperlegible \
