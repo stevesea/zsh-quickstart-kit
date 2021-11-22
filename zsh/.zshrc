@@ -81,6 +81,14 @@ if can_haz brew; then
   if [[ -d "${BREW_PREFIX}/sbin" ]]; then
     export PATH="$PATH:${BREW_PREFIX}/sbin"
   fi
+elif [[ -d /opt/homebrew ]]; then
+  BREW_PREFIX=/opt/homebrew
+  if [[ -d "${BREW_PREFIX}/bin" ]]; then
+    export PATH="$PATH:${BREW_PREFIX}/bin"
+  fi
+  if [[ -d "${BREW_PREFIX}/sbin" ]]; then
+    export PATH="$PATH:${BREW_PREFIX}/sbin"
+  fi
 fi
 
 # We will dedupe $PATH after loading ~/.zshrc.d/* so that any duplicates
@@ -98,6 +106,9 @@ load-our-ssh-keys() {
    # Check for a currently running instance of the agent
    RUNNING_AGENT="$(ps -ax | grep 'ssh-agent -s' | grep -v grep | wc -l | tr -d '[:space:]')"
    if [ "$RUNNING_AGENT" = "0" ]; then
+        if [ ! -d ~/.ssh ] ; then
+          mkdir -p ~/.ssh
+        fi
         # Launch a new instance of the agent
         ssh-agent -s &> ~/.ssh/ssh-agent
    fi
@@ -336,13 +347,6 @@ if [[ -d ~/.zsh-completions ]]; then
   done
 fi
 
-# Honor old .zshrc.local customizations, but print deprecation warning.
-if [ -f ~/.zshrc.local ]; then
-  source ~/.zshrc.local
-  echo '~/.zshrc.local is deprecated - use files in ~/.zshrc.d instead.'
-  echo 'The zsh-quickstart-kit will no longer load ~/.zshrc.local after 2021-10-31'
-fi
-
 # Load zmv
 if [[ ! -f ~/.zsh-quickstart-no-zmv ]]; then
   autoload -U zmv
@@ -405,8 +409,20 @@ _update-zsh-quickstart() {
       if [[ -f "${gitroot}/.gitignore" ]]; then
         if [[ $(grep -c zsh-quickstart-kit "${gitroot}/.gitignore") -ne 0 ]]; then
           echo "---- updating ----"
+          # Cope with switch from master to main
+          zqs_current_branch=$(git rev-parse --abbrev-ref HEAD)
+          git fetch
+          # Determine the repo default branch and switch to it
+          zqs_default_branch="$(git remote show origin | grep 'HEAD branch' | awk '{print $3}')"
+          if [[ "$zqs_default_branch" != "$zqs_current_branch" ]]; then
+            echo "The ZSH Quickstart Kit has switched default branches to $zqs_default_branch"
+            echo "Changing branches in your local checkout from $zqs_current_branch to $zqs_default_branch"
+            git checkout "$zqs_default_branch"
+          fi
           git pull
           date +%s >! ~/.zsh-quickstart-last-update
+          unset zqs_default_branch
+          unset zqs_current_branch
         fi
       else
         echo 'No quickstart marker found, is your quickstart a valid git checkout?'
@@ -429,7 +445,7 @@ _check-for-zsh-quickstart-update() {
 
 if [[ ! -z "$QUICKSTART_KIT_REFRESH_IN_DAYS" ]]; then
   _check-for-zsh-quickstart-update
-  unset QUICKSTART_KIT_REFRESH_IN_DAYS
+  # unset QUICKSTART_KIT_REFRESH_IN_DAYS
 fi
 
 # Fix bracketed paste issue
@@ -471,3 +487,35 @@ if ! can_haz fzf; then
   echo
   echo "Install instructions can be found at https://github.com/junegunn/fzf/"
 fi
+
+function zqs-help() {
+  echo "The zqs command allows you to manipulate your ZSH quickstart."
+  echo
+  echo "options:"
+  echo "zqs check-for-updates - Update the quickstart kit if it has been longer than $QUICKSTART_KIT_REFRESH_IN_DAYS days since the last update."
+  echo "zqs selfupdate - Force an immediate update of the quickstart kit"
+  echo "zqs update - Update the quickstart kit and all your plugins"
+  echo "zqs update-plugins - Update your plugins"
+}
+
+function zqs() {
+  case "$1" in
+    'check-for-updates')
+      _check-for-zsh-quickstart-update
+      ;;
+    'selfupdate')
+      _update-zsh-quickstart
+      ;;
+    'update')
+      _update-zsh-quickstart
+      zgenom update
+      ;;
+    'update-plugins')
+      zgenom update
+      ;;
+    *)
+      zqs-help
+      ;;
+
+  esac
+}
