@@ -136,6 +136,7 @@ load-starter-plugin-list() {
     #zgenom oh-my-zsh plugins/screen
     #zgenom oh-my-zsh plugins/vagrant
 
+    zgenom oh-my-zsh plugins/helm
     zgenom oh-my-zsh plugins/asdf
     zgenom oh-my-zsh plugins/docker
     zgenom oh-my-zsh plugins/gcloud
