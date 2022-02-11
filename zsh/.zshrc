@@ -93,8 +93,12 @@ fi
 # tool that makes it easy to customize your color scheme and keep them in sync
 # across Linux and OS X/*BSD at http://geoff.greer.fm/lscolors/
 
-export LSCOLORS='Exfxcxdxbxegedabagacad'
-export LS_COLORS='di=1;34;40:ln=35;40:so=32;40:pi=33;40:ex=31;40:bd=34;46:cd=34;43:su=0;41:sg=0;46:tw=0;42:ow=0;43:'
+if [[ -z "$LSCOLORS" ]]; then
+  export LSCOLORS='Exfxcxdxbxegedabagacad'
+fi
+if [[ -z "$LS_COLORS" ]]; then
+  export LS_COLORS='di=1;34;40:ln=35;40:so=32;40:pi=33;40:ex=31;40:bd=34;46:cd=34;43:su=0;41:sg=0;46:tw=0;42:ow=0;43:'
+fi
 
 load-our-ssh-keys() {
   if [ -z "$SSH_AUTH_SOCK" ]; then
@@ -339,10 +343,10 @@ fi
 # When present, use exa instead of ls
 if can_haz exa; then
   if [[ -z "$EXA_TREE_IGNORE" ]]; then
-    EXA_TREE_IGNORE=".cache|cache|node_modules|vendor"
+    EXA_TREE_IGNORE=".cache|cache|node_modules|vendor|.git"
   fi
 
-  alias l='exa -al --git --time-style=long-iso --group-directories-first --color-scale'
+  alias l='exa -al --icons --git --time-style=long-iso --group-directories-first --color-scale'
   alias ls='exa --group-directories-first'
 
   # Don't step on system-installed tree command
@@ -515,6 +519,8 @@ function zqs-help() {
   echo
   echo "options:"
   echo "zqs check-for-updates - Update the quickstart kit if it has been longer than $QUICKSTART_KIT_REFRESH_IN_DAYS days since the last update."
+  echo "zqs disable-omz-plugins - Set the quickstart to not load oh-my-zsh plugins if you're using the standard plugin list"
+  echo "zqs enable-omz-plugins - Set the quickstart to load oh-my-zsh plugins if you're using the standard plugin list"
   echo "zqs selfupdate - Force an immediate update of the quickstart kit"
   echo "zqs update - Update the quickstart kit and all your plugins"
   echo "zqs update-plugins - Update your plugins"
@@ -524,6 +530,12 @@ function zqs() {
   case "$1" in
     'check-for-updates')
       _check-for-zsh-quickstart-update
+      ;;
+    'disable-omz-plugins')
+      zsh-quickstart-disable-omz-plugins
+      ;;
+    'enable-omz-plugins')
+      zsh-quickstart-enable-omz-plugins
       ;;
     'selfupdate')
       _update-zsh-quickstart
