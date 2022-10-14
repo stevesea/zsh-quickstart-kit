@@ -159,7 +159,7 @@ load-starter-plugin-list() {
     fi
   fi
 
-  zgenom load MichaelAquilina/zsh-autoswitch-virtualenv
+  #zgenom load MichaelAquilina/zsh-autoswitch-virtualenv
 
   # A set of shell functions to make it easy to install small apps and
   # utilities distributed with pip.
