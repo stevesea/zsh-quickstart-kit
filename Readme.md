@@ -2,9 +2,8 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Funixorn%2Fzsh-quickstart-kit%2Fbadge&style=plastic)](https://actions-badge.atrox.dev/unixorn/zsh-quickstart-kit/goto)
-[![GitHub stars](https://img.shields.io/github/stars/unixorn/zsh-quickstart-kit.svg)](https://github.com/unixorn/zsh-quickstart-kit/stargazers)
 ![Awesomebot](https://github.com/unixorn/zsh-quickstart-kit/actions/workflows/awesomebot.yml/badge.svg)
-![Superlinter](https://github.com/unixorn/zsh-quickstart-kit/actions/workflows/superlinter.yml/badge.svg)
+![Megalinter](https://github.com/unixorn/zsh-quickstart-kit/actions/workflows/mega-linter.yml/badge.svg)
 [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/unixorn/zsh-quickstart-kit/main.svg)](https://github.com/unixorn/zsh-quickstart-kit)
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
@@ -26,14 +25,23 @@
   - [Behavior toggles](#behavior-toggles)
     - [zqs](#zqs)
       - [zqs check-for-updates](#zqs-check-for-updates)
+      - [zqs-disable-bindkey-handling](#zqs-disable-bindkey-handling)
+      - [zqs-enable-bindkey-handling](#zqs-enable-bindkey-handling)
       - [zqs disable-omz-plugins](#zqs-disable-omz-plugins)
       - [zqs enable-omz-plugins](#zqs-enable-omz-plugins)
+      - [zqs-disable-ssh-key-listing](#zqs-disable-ssh-key-listing)
+      - [zqs-enable-ssh-key-listing](#zqs-enable-ssh-key-listing)
+      - [zqs-disable-zmv-autoloading](#zqs-disable-zmv-autoloading)
+      - [zqs-enable-zmv-autoloading](#zqs-enable-zmv-autoloading)
       - [zqs selfupdate](#zqs-selfupdate)
       - [zqs update](#zqs-update)
       - [zqs update-plugins](#zqs-update-plugins)
+      - [zqs get-setting](#zqs-get-setting)
+      - [zqs set-setting](#zqs-set-setting)
+      - [zqs delete-setting](#zqs-delete-setting)
   - [Functions and Aliases](#functions-and-aliases)
-    - [.zshrc.d](#zshrcd)
-  - [I like a plugin, but the aliases it installs overwrite other commands or aliases](#i-like-a-plugin-but-the-aliases-it-installs-overwrite-other-commands-or-aliases)
+    - [Customizing with ~/.zshrc.d](#customizing-with-zshrcd)
+  - [I like a plugin, but some of the aliases and functions it installs overwrite other commands or aliases I use](#i-like-a-plugin-but-some-of-the-aliases-and-functions-it-installs-overwrite-other-commands-or-aliases-i-use)
   - [ZSH options](#zsh-options)
   - [Self-update Settings](#self-update-settings)
   - [Customizing the plugin list](#customizing-the-plugin-list)
@@ -41,9 +49,10 @@
   - [Disabling oh-my-zsh](#disabling-oh-my-zsh)
 - [FAQ](#faq)
   - [How do I reconfigure the prompt?](#how-do-i-reconfigure-the-prompt)
-  - [I added a new completion plugin and it isn't working](#i-added-a-new-completion-plugin-and-it-isnt-working)
+  - [Powerlevel 10k warns that there is console output during startup](#powerlevel-10k-warns-that-there-is-console-output-during-startup)
+  - [I added a new completion plugin, and it isn't working](#i-added-a-new-completion-plugin-and-it-isnt-working)
   - [I get a git error when I try to update the kit](#i-get-a-git-error-when-i-try-to-update-the-kit)
-  - [GNU stow complains with a warning that stowing zsh would cause conflicts](#gnu-stow-complains-with-a-warning-that-stowing-zsh-would-cause-conflicts)
+  - [GNU stow is warning that stowing zsh would cause conflicts](#gnu-stow-is-warning-that-stowing-zsh-would-cause-conflicts)
   - [_arguments:comparguments:325: can only be called from completion function](#_argumentscomparguments325-can-only-be-called-from-completion-function)
   - [Could not open a connection to your authentication agent](#could-not-open-a-connection-to-your-authentication-agent)
 - [Other Resources](#other-resources)
@@ -76,7 +85,7 @@ Here are a few good Powerline-compatible fonts:
 * [Monoid](http://larsenwork.com/monoid/) - Monoid is customizable and optimized for coding with bitmap-like sharpness at 15px line-height even on low res displays.
 * [Mononoki](https://madmalik.github.io/mononoki/) - Mononoki is a typeface by Matthias Tellen, created to enhance code formatting.
 * [More Nerd Fonts](https://www.nerdfonts.com/font-downloads) - Another site to download nerd fonts.
-* [Nerd fonts](https://github.com/ryanoasis/nerd-fonts) - A collection of over 20 patched fonts (over 1,700 variations) & the fontforge font patcher python script for Powerline, devicons, and vim-devicons: includes Droid Sans, Meslo, AnonymousPro, ProFont, Inconsolta, and many more.
+* [Nerd fonts](https://github.com/ryanoasis/nerd-fonts) - A collection of over 20 patched fonts (over 1,700 variations) & the fontforge font patcher python script for Powerline, devicons, and vim-devicons: includes Droid Sans, Meslo, AnonymousPro, ProFont, Inconsolta, and many more. These can be installed with `brew` - do `brew tap homebrew/cask-fonts && brew install --cask fontname`
 * [Powerline patched font collection](https://github.com/powerline/fonts) - A collection of a dozen or so fonts patched to include Powerline glyphs.
 * [Victor Mono](https://rubjo.github.io/victor-mono/) - Victor Mono is a free programming font with semi-connected cursive italics, symbol ligatures (!=, ->>, =>, ===, <=, >=, ++) and Latin, Cyrillic and Greek characters.
 * [spacemono](https://github.com/googlefonts/spacemono) - Google's new original monospace display typeface family.
@@ -130,7 +139,7 @@ Now that your fonts and default shell have been set up, install [zgenom](https:/
 2. Install the starter kit
     1. `cd ~`
     2. `git clone https://github.com/unixorn/zsh-quickstart-kit.git`
-3. Configure zsh by symlinking the `.zshrc`, `.zsh_aliases`, and `.zsh-completions` from this repository into your `~`.
+3. Configure zsh by symlinking the `.zshrc`, `.zsh-functions`, `.zgen-setup` and `.zsh_aliases` from this repository into your `~`.
     1. You can do this with `stow` by:
         1. `cd zsh-quickstart-kit`
         2. `stow --target=~ zsh`. If you have issues using `~` as a target, do `stow --target="$HOME" zsh`. If you still have errors, symlink the files in the kit's `zsh` directory into your home directory.
@@ -157,12 +166,13 @@ The zsh-quickstart-kit configures your ZSH environment so that it includes:
 * [chrissicool/zsh-256color](https://github.com/chrissicool/zsh-256color) - Sets your terminal to 256 colors if available.
 * [djui/alias-tips](https://github.com/djui/alias-tips) - Warns you when you have an alias for the command you just typed and tells you what it is.
 * [peterhurford/git-it-on.zsh](https://github.com/peterhurford/git-it-on.zsh) - Opens your current repository on GitHub, in your current branch.
-* [RobSis/zsh-completion-generator](https://github.com/RobSis/zsh-completion-generator) - Adds a tool to generate ZSH completion functions for programs missing them by parsing their `--help` output. Note that this doesn't happen dynamically; you'll have to explicitly run it to create a completion for each command missing one.
+* [robSis/zsh-completion-generator](https://github.com/RobSis/zsh-completion-generator) - Adds a tool to generate ZSH completion functions for programs missing them by parsing their `--help` output. Note that this doesn't happen dynamically; you'll have to explicitly run it to create a completion for each command missing one.
 * [sharat87/pip-app](https://github.com/sharat87/pip-app) - A set of shell functions to make it easy to install small apps and utilities distributed with `pip`.
 * [skx/sysadmin-util](https://github.com/skx/sysadmin-util) - A collection of scripts useful for sysadmins.
 * [srijanshetty/docker-zsh](https://github.com/srijanshetty/docker-zsh) - Adds completions for `docker`.
 * [stackexchange/blackbox](https://github.com/stackexchange/blackbox) - Tom Limoncelli's tool for storing secret information in a repository with GnuPG encryption, automatically decrypting as needed.
 * [supercrabtree/k](https://github.com/supercrabtree/k) - `k` is a directory lister that also shows git status on files & directories.
+* [unixorn/1password-op.plugin.zsh](https://github.com/unixorn/1password-op.plugin.zsh) - Tab completions for [1Password](https://1password.com)'s [op](https://developer.1password.com/docs/cli/get-started/) command line tool. Only installs itself if `op` is in your `$PATH`.
 * [unixorn/autoupdate-zgenom](https://github.com/unixorn/autoupdate-zgenom) - Adds autoupdate (for both `zgenom` itself, and your plugins) to `zgenom`.
 * [unixorn/bitbucket-git-helpers](https://github.com/unixorn/bitbucket-git-helpers.plugin.zsh) - Adds `git` helper scripts for bitbucket.
 * [unixorn/fzf-zsh-plugin](https://github.com/unixorn/fzf-zsh-plugin) - This enables `fzf`-powered history search.
@@ -170,10 +180,10 @@ The zsh-quickstart-kit configures your ZSH environment so that it includes:
 * [unixorn/jpb.zshplugin](https://github.com/unixorn/jpb.zshplugin) - Some of my standard aliases & functions.
 * [unixorn/rake-completion.zshplugin](https://github.com/unixorn/rake-completion.zshplugin) - Reads the Rakefile in the current directory so you can tab-complete the Rakefile targets.
 * [unixorn/tumult.plugin.zsh](https://github.com/unixorn/tumult.plugin.zsh) - Adds macOS-specific functions and scripts. This plugin only adds itself to your `$PATH` if you're running macOS to allow you to use the same plugin list on macOS and other systems.
+* [zdharma-continuum/fast-syntax-highlighting](https://github.com/zdharma-continuum/fast-syntax-highlighting) - Syntax highlighting as you type.
 * [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) - Adds fish-like autosuggestions to your ZSH sessions.
 * [zsh-users/zsh-completions](https://github.com/zsh-users/zsh-completions) - Tab completions for many more applications than come standard with ZSH.
 * [zsh-users/zsh-history-substring-search](https://github.com/zsh-users/zsh-history-substring-search) - Better history search.
-* [zsh-users/zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting) - Syntax highlighting as you type.
 
 The quickstart kit also uses `zgenom` to load oh-my-zsh and these plugins:
 
@@ -211,13 +221,37 @@ As of 2021-11-13, I've added a `zqs` command to start exposing some of the confi
 
 Updates the quickstart kit if it has been longer than seven days since the last update.
 
+##### zqs-disable-bindkey-handling
+
+Disable `bindkey` setup and alias expansion in the quickstart `.zshrc` so people can use plugins like [globalias](https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/globalias) to handle it instead.
+
+##### zqs-enable-bindkey-handling
+
+Let the quickstart's `.zshrc` configure `bindkey` setup and alias expansion. This is the default behavior.
+
 ##### zqs disable-omz-plugins
 
-Sets the quickstart to not include any oh-my-zsh plugins from the standard plugin list. Loading omz plugins can make terminal startup significantly slower.
+Set the quickstart to not include any oh-my-zsh plugins from the standard plugin list. Loading omz plugins can make terminal startup significantly slower.
 
 ##### zqs enable-omz-plugins
 
 Sets the quickstart to include the oh-my-zsh plugins from the standard plugin list.
+
+##### zqs-disable-ssh-key-listing
+
+Don't print the loaded `ssh` keys when creating a new session.
+
+##### zqs-enable-ssh-key-listing
+
+Print the loaded `ssh` keys when creating a new session. This is the default behavior.
+
+##### zqs-disable-zmv-autoloading
+
+Don't run `autoload -U zmv` when creating a new session.
+
+##### zqs-enable-zmv-autoloading
+
+Run `autoload -U zmv` when creating a new session. This is the default behavior.
 
 ##### zqs selfupdate
 
@@ -231,26 +265,41 @@ Update the quickstart kit and all your plugins.
 
 Updates all your plugins.
 
+##### zqs get-setting
+
+`zqs get-setting NAME [OPTIONAL default value]` prints the value of a `zqs` setting, or if unset and a default value was passed, the specified default.
+
+##### zqs set-setting
+
+`zqs set-setting NAME VALUE` writes a setting.
+
+##### zqs delete-setting
+
+`zqs delete-setting NAME` deletes a setting from `zqs`'s crude parameter store.
+
 ### Functions and Aliases
 
-#### .zshrc.d
+#### Customizing with ~/.zshrc.d
 
-The `.zshrc` included in this kit will automatically source any files it finds in `~/.zshrc.d`.
+The `.zshrc` included in this kit will automatically source any files it finds in `~/.zshrc.d`. This happens after plugins are loaded. If you need to set variables or aliases before plugins are loaded, create files in `~/.zshrc.pre-plugins.d`.
 
 This makes it easy for you to add extra functions and aliases without having to maintain a separate fork of this repository and allows you to configure the behavior of some of the plugins by setting environment variables.
 
 The files will be sourced in alphanumeric order after loading all the plugins, and I suggest you use a naming scheme of `001-onething`, `002-something-else` etc., to ensure they're loaded in the order you expect.
 
-### I like a plugin, but the aliases it installs overwrite other commands or aliases
+### I like a plugin, but some of the aliases and functions it installs overwrite other commands or aliases I use
 
-Make a file in `~/.zshrc.d` named something like `999-reset-aliases`. Since those are loaded after all the ZSH plugins, you can add lines like `unalias xyzzy` to remove an alias named `xyzzy`. Once you've cleared all the unwanted aliases, you can add new ones with your preferred names.
+Make a file in `~/.zshrc.d` named something like `999-reset-aliases`. Because files in `~/.zshrc.d` are loaded after all the ZSH plugins, you can add lines like `unalias xyzzy` to remove an alias named `xyzzy`, or `unset -f abcd` to remove a function named `abcd`.
+
+Once you've cleared all the unwanted aliases and functions, you can add new ones with your preferred names.
 
 ### ZSH options
 
 The quickstart kit does an opinionated (i.e., my way) setup of ZSH options and adds some functions and aliases I like on my systems.
 
-However, `~/.zshrc.d` is processed _after_ the quickstart sets its aliases, functions, and ZSH options, so if you don't care for something as set up in the quickstart, you can override the offending item in a shell fragment file there.
+However, `~/.zshrc.d` is processed *after* the quickstart sets its aliases, functions, and ZSH options, so if you don't care for something as set up in the quickstart, you can override the offending item in a shell fragment file there.
 
+The kit also looks for files in `~/.zshrc.pre-plugins.d`, and you can use snippet files in there to set environment variables that alter the startup behavior of plugins.
 
 ### Self-update Settings
 
@@ -260,9 +309,17 @@ The quickstart kit will automatically check for updates every seven days. If you
 
 I've included what I think is a good starter set of ZSH plugins in this repository. However, everyone has their preferences for their environment.
 
+There are two main ways to customize the list.
+
+You can either add a new plugin in a file in `~/.zshrc.pre-plugins.d`, or you can make a `~/.zsh-quickstart-local-plugin` file.
+
+If you're just adding plugins to the standard list and want to automatically get any new changes I make to that standard list (new plugins, new locations when existing plugins are moved, etc) then adding a file like `/zshrc.pre-plugins.d/999-add-some-plugins` with entries like `zgenom load githubuser/pluginrepo && zgenom save` is the way to go - the kit will load its plugins, then add yours on the end.
+
+If you don't care about changes to the kit's plugins, then go with creating a `~/.zsh-quickstart-local-plugin` file.
+
 To make the list easier to customize without having to maintain a separate fork of the quickstart kit, if you create a file named `~/.zsh-quickstart-local-plugins`, the `.zshrc` from this starter kit will source that **instead** of running the `load-starter-plugin-list` function defined in `~/.zgen-setup`.
 
-**Using `~/.zsh-quickstart-local-plugins` is not additive. It will _completely replace_ the kit-provided list of plugins.**
+**Using `~/.zsh-quickstart-local-plugins` is not additive. It will *completely replace* the kit-provided list of plugins.**
 
 I realize that it would be a pain to create `.zsh-quickstart-local-plugins` from scratch, so to make customizing your plugins easier, I've included a `.zsh-quickstart-local-plugins-example` file at the root of the repository that will install the same plugin list that the kit does by default that you can use as a starting point for your own customizations.
 
@@ -270,17 +327,29 @@ Copy that to your `$HOME/.zsh-quickstart-local-plugins`, change the list, and th
 
 ### Disabling zmv
 
-The quickstart automatically autoloads zmv. If you want to disable that, create a file named `.zsh-quickstart-no-zmv` in your home directory.
+The quickstart automatically autoloads `zmv`. If you want to disable that so you can configure it with another plugin or on your own, run `zqs disable-zmv-autoloading`.
 
 ### Disabling oh-my-zsh
 
-If you don't want `zgenom` to load the oh-my-zsh defaults, create `.zsh-quickstart-no-omz` in your home directory.
+If you don't want `zgenom` to load the oh-my-zsh defaults, run `zqs-disable-omz-plugins`.
 
 ## FAQ
 
 ### How do I reconfigure the prompt?
 
 You may want to reconfigure your prompt after using it. The quickstart uses the [powerlevel10k](https://github.com/romkatv/powerlevel10k) theme, so you can reconfigure your prompt by running `p10k configure`.
+
+### Powerlevel 10k warns that there is console output during startup
+
+You see a warning during session startup -
+
+```sh
+[WARNING]: Console output during zsh initialization detected.
+When using Powerlevel10k with instant prompt, console output during zsh
+initialization may indicate issues.
+```
+
+You can stifle this output by adding `typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet` in a fragment file in `~/.zshrc.d`.
 
 ### I added a new completion plugin, and it isn't working
 

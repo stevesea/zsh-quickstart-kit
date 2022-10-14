@@ -62,7 +62,7 @@ load-starter-plugin-list() {
   ZGEN_LOADED=()
   ZGEN_COMPLETIONS=()
 
-  if [[ ! -f ~/.zsh-quickstart-no-omz ]]; then
+  if [[ ! -f ~/.zsh-quickstart-no-omz ]] || [[ $(_zqs-get-setting load-omz-plugins true) == 'true' ]]; then
     zgenom oh-my-zsh
   fi
 
@@ -79,7 +79,7 @@ load-starter-plugin-list() {
 
   # If zsh-syntax-highlighting is bundled after zsh-history-substring-search,
   # they break, so get the order right.
-  zgenom load zsh-users/zsh-syntax-highlighting
+  zgenom load zdharma-continuum/fast-syntax-highlighting
   zgenom load zsh-users/zsh-history-substring-search
 
   # Set keystrokes for substring searching
@@ -128,7 +128,7 @@ load-starter-plugin-list() {
   # in a repository securely by encrypting them with gnupg.
   zgenom load StackExchange/blackbox
 
-  if [[ ! -f ~/.zsh-quickstart-no-omz ]]; then
+  if [[ ! -f ~/.zsh-quickstart-no-omz ]] || [[ $(_zqs-get-setting load-omz-plugins false) == 'true' ]]; then
     # Load some oh-my-zsh plugins
     zgenom oh-my-zsh plugins/pip
     #zgenom oh-my-zsh plugins/sudo
@@ -173,6 +173,9 @@ load-starter-plugin-list() {
   # Docker completion
   zgenom load srijanshetty/docker-zsh
 
+  # Load tab completions for 1Password's op command line tool if it's installed
+  zgenom load unixorn/1password-op.plugin.zsh
+
   # Load me last
   GENCOMPL_FPATH=$HOME/.zsh/complete
 
@@ -189,7 +192,8 @@ load-starter-plugin-list() {
   # directories.
   zgenom load supercrabtree/k
 
-  if [[ -f ~/.zsh-quickstart-use-bullet-train ]]; then
+  # Be compatible with the old settings files for now
+  if [[ -f ~/.zsh-quickstart-use-bullet-train ]] || [[ $(_zqs-get-setting bullet-train false) == 'true' ]]; then
     # Bullet train prompt setup.
     zgenom load https://github.com/caiogondim/bullet-train.zsh
   else
