@@ -107,7 +107,7 @@ load-starter-plugin-list() {
 
   # Warn you when you run a command that you've set an alias for without
   # using the alias.
-  zgenom load djui/alias-tips
+  #zgenom load djui/alias-tips
 
   # Add my collection of git helper scripts.
   zgenom load unixorn/git-extra-commands
