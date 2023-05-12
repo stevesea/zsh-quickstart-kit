@@ -1,4 +1,4 @@
-# Copyright 2006-2022 Joseph Block <jpb@unixorn.net>
+# Copyright 2006-2023 Joseph Block <jpb@unixorn.net>
 #
 # BSD licensed, see LICENSE.txt
 #
@@ -28,7 +28,7 @@ function can_haz() {
 
 # Fix weirdness with intellij
 if [[ -z "${INTELLIJ_ENVIRONMENT_READER}" ]]; then
-    export POWERLEVEL9K_INSTANT_PROMPT='quiet'
+  export POWERLEVEL9K_INSTANT_PROMPT='quiet'
 fi
 
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
@@ -129,6 +129,13 @@ _zqs-purge-setting() {
 
 # Convert the old settings files into new style settings
 function _zqs-update-stale-settings-files() {
+  # Convert .zqs-additional-plugins to new format
+  if [[ -f ~/.zqs-additional-plugins ]]; then
+    mkdir -p ~/.zshrc.add-plugins.d
+    sed -e 's/^./zgenom load &/' ~/.zqs-additional-plugins >> ~/.zshrc.add-plugins.d/0000-transferred-plugins
+    rm -f ~/.zqs-additional-plugins
+    echo "Plugins from .zqs-additional-plugins were moved to .zshrc.add-plugins.d/0000-transferred-plugins with a format change"
+  fi
   if [[ -f ~/.zsh-quickstart-use-bullet-train ]]; then
     _zqs-set-setting bullet-train true
     rm -f ~/.zsh-quickstart-use-bullet-train
@@ -143,6 +150,12 @@ function _zqs-update-stale-settings-files() {
     _zqs-set-setting no-zmv true
     rm -f ~/.zsh-quickstart-no-zmv
     echo "Converted old ~/.zsh-quickstart-no-zmv to new settings system"
+  fi
+  # Don't break existing user setups, but transition to a zqs setting to reduce
+  # pollution in the user's environment.
+  if [[ -z "ZSH_QUICKSTART_SKIP_TRAPINT" ]]; then
+    echo "'ZSH_QUICKSTART_SKIP_TRAPINT' is deprecated in favor of running 'zqs disable-control-c-decorator' to write a settings knob."
+    zqs-quickstart-disable-control-c-decorator
   fi
 }
 
@@ -173,6 +186,18 @@ function zsh-quickstart-enable-bindkey-handling() {
   _zqs-set-setting handle-bindkeys true
 }
 
+function zqs-quickstart-disable-control-c-decorator() {
+  _zqs-set-setting control-c-decorator false
+  echo "Disabled the control-c decorator in future zsh sessions."
+  echo "You can re-enable the quickstart's control-c decorator by running 'zqs enable-control-c-decorator'"
+}
+
+function zqs-quickstart-enable-control-c-decorator() {
+  echo "The control-c decorator is enabled for future zsh sessions."
+  echo "You can disable the quickstart's control-c decorator by running 'zqs disable-control-c-decorator'"
+  _zqs-set-setting control-c-decorator true
+}
+
 function _zqs-enable-zmv-autoloading() {
   _zqs-set-setting no-zmv false
 }
@@ -193,6 +218,30 @@ function zsh-quickstart-enable-omz-plugins() {
   _zqs-trigger-init-rebuild
 }
 
+function zsh-quickstart-set-ssh-askpass-require() {
+  if [[ $(_zqs-get-setting ssh-askpass-require) == 'true' ]]; then
+    export SSH_ASKPASS_REQUIRE=never
+  fi
+}
+
+function zsh-quickstart-enable-ssh-askpass-require() {
+  _zqs-set-setting enable-ssh-askpass-require true
+}
+
+function zsh-quickstart-disable-ssh-askpass-require() {
+  _zqs-set-setting enable-ssh-askpass-require false
+  zsh-quickstart-check-for-ssh-askpass
+}
+
+function zsh-quickstart-check-for-ssh-askpass() {
+  if ! can_haz ssh-askpass; then
+    echo "If you disable the ssh-askpass-require feature."
+    echo "You'll need to install ssh-askpass for the quickstart to prompt,"
+    echo "for your ssh key/s passphrase on shell startup."
+    echo "This is the default behavior for ssh-add:"
+    echo $(tput setaf 2)"https://www.man7.org/linux/man-pages/man1/ssh-add.1.html#ENVIRONMENT"$(tput sgr0)
+  fi
+}
 # Correct spelling for commands
 setopt correct
 
@@ -258,22 +307,31 @@ if [[ -z "$LS_COLORS" ]]; then
 fi
 
 load-our-ssh-keys() {
-  # If keychain is installed let it take care of ssh-agent, else do it manually
-  if can_haz keychain; then
-    eval `keychain -q --eval`
+  if can_haz op; then
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+      export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
+    fi
+    if [[ "$(uname -s)" == "Linux" ]]; then
+      export SSH_AUTH_SOCK=~/.1password/agent.sock
+    fi
   else
-    if [ -z "$SSH_AUTH_SOCK" ]; then
-      # If user has keychain installed, let it take care of ssh-agent, else do it manually
-      # Check for a currently running instance of the agent
-      RUNNING_AGENT="$(ps -ax | grep 'ssh-agent -s' | grep -v grep | wc -l | tr -d '[:space:]')"
-      if [ "$RUNNING_AGENT" = "0" ]; then
-        if [ ! -d ~/.ssh ] ; then
-          mkdir -p ~/.ssh
+    # If keychain is installed let it take care of ssh-agent, else do it manually
+    if can_haz keychain; then
+      eval `keychain -q --eval`
+    else
+      if [ -z "$SSH_AUTH_SOCK" ]; then
+        # If user has keychain installed, let it take care of ssh-agent, else do it manually
+        # Check for a currently running instance of the agent
+        RUNNING_AGENT="$(ps -ax | grep 'ssh-agent -s' | grep -v grep | wc -l | tr -d '[:space:]')"
+        if [ "$RUNNING_AGENT" = "0" ]; then
+          if [ ! -d ~/.ssh ] ; then
+            mkdir -p ~/.ssh
+          fi
+          # Launch a new instance of the agent
+          ssh-agent -s &> ~/.ssh/ssh-agent
         fi
-        # Launch a new instance of the agent
-        ssh-agent -s &> ~/.ssh/ssh-agent
+        eval $(cat ~/.ssh/ssh-agent)
       fi
-      eval $(cat ~/.ssh/ssh-agent)
     fi
   fi
 
@@ -315,7 +373,13 @@ load-our-ssh-keys() {
 
 if [[ -z "$SSH_CLIENT" ]] || can_haz keychain; then
   # We're not on a remote machine, so load keys
-  load-our-ssh-keys
+  if [[ "$(_zqs-get-setting ssh-askpass-require)" == 'true' ]]; then
+    zsh-quickstart-set-ssh-askpass-require
+  fi
+  load_ssh_keys="$(_zqs-get-setting load-ssh-keys true)"
+  if [[ "$load_ssh_keys" != "false" ]]; then
+    load-our-ssh-keys
+  fi
 fi
 
 # Load helper functions before we load zgenom setup
@@ -384,7 +448,9 @@ setopt share_history
 HISTSIZE=100000
 SAVEHIST=100000
 HISTFILE=~/.zsh_history
-export HISTIGNORE="ls:cd:cd -:pwd:exit:date:* --help"
+
+#ZSH Man page referencing the history_ignore parameter - https://manpages.ubuntu.com/manpages/kinetic/en/man1/zshparam.1.html
+HISTORY_IGNORE="(cd ..|l[s]#( *)#|pwd *|exit *|date *|* --help)"
 
 # Set some options about directories
 setopt pushd_ignore_dups
@@ -490,31 +556,6 @@ if [ "$TERM" = "screen" -a ! "$SHOWED_SCREEN_MESSAGE" = "true" ]; then
   fi
 fi
 
-# grc colorizes the output of a lot of commands. If the user installed it,
-# use it.
-
-# Try and find the grc setup file
-if (( $+commands[grc] )); then
-  GRC_SETUP='/usr/local/etc/grc.bashrc'
-fi
-if (( $+commands[grc] )) && (( $+commands[brew] ))
-then
-  GRC_SETUP="$(brew --prefix)/etc/grc.bashrc"
-fi
-if [[ -r "$GRC_SETUP" ]]; then
-  source "$GRC_SETUP"
-fi
-unset GRC_SETUP
-
-if (( $+commands[grc] ))
-then
-  function ping5(){
-    grc --color=auto ping -c 5 "$@"
-  }
-else
-  alias ping5='ping -c 5'
-fi
-
 # These need to be done after $PATH is set up so we can find
 # grc and exa
 
@@ -533,7 +574,12 @@ if can_haz exa; then
     EXA_TREE_IGNORE=".cache|cache|node_modules|vendor|.git"
   fi
 
-  alias l='exa -al --icons --git --time-style=long-iso --group-directories-first --color-scale'
+  if [[ "$(exa --help | grep -c git)" == 0 ]]; then
+    # Not every linux exa build has git support compiled in
+    alias l='exa -al --icons --time-style=long-iso --group-directories-first --color-scale'
+  else
+    alias l='exa -al --icons --git --time-style=long-iso --group-directories-first --color-scale'
+  fi
   alias ls='exa --group-directories-first'
 
   # Don't step on system-installed tree command
@@ -599,12 +645,13 @@ _load-lastupdate-from-file() {
 }
 
 _update-zsh-quickstart() {
-  if [[ ! -L ~/.zshrc ]]; then
+  local _zshrc_loc=~/.zshrc
+  if [[ ! -L "${_zshrc_loc}" ]]; then
     echo ".zshrc is not a symlink, skipping zsh-quickstart-kit update"
   else
-    local _link_loc=$(readlink ~/.zshrc);
+    local _link_loc=${_zshrc_loc:A};
     if [[ "${_link_loc/${HOME}}" == "${_link_loc}" ]]; then
-      pushd $(dirname "${HOME}/$(readlink ~/.zshrc)");
+      pushd $(dirname "${HOME}/${_zshrc_loc:A}");
     else
       pushd $(dirname ${_link_loc});
     fi;
@@ -675,7 +722,7 @@ if [[ $(_zqs-get-setting list-ssh-keys true) == 'true' ]]; then
   echo
 fi
 
-if [[ -z "ZSH_QUICKSTART_SKIP_TRAPINT" ]]; then
+if [[ $(_zqs-get-setting control-c-decorator 'true') == 'true' ]]; then
   # Original source: https://vinipsmaker.wordpress.com/2014/02/23/my-zsh-config/
   # bash prints ^C when you're typing a command and control-c to cancel, so it
   # is easy to see it wasn't executed. By default, ZSH doesn't print the ^C.
@@ -702,16 +749,23 @@ function zqs-help() {
   echo "zqs selfupdate - Force an immediate update of the quickstart kit"
   echo "zqs update - Update the quickstart kit and all your plugins"
   echo "zqs update-plugins - Update your plugins"
+  echo "zqs cleanup - Cleanup unused plugins after removing them from the list"
   echo ""
   echo "Quickstart settings commands:"
   echo "zqs disable-bindkey-handling - Set the quickstart to not touch any bindkey settings. Useful if you're using another plugin to handle it."
-  echo "zqs enable-bindkey-handling - Set the quickstart to confingure your bindkey settings. Default behavior."
+  echo "zqs enable-bindkey-handling - Set the quickstart to configure your bindkey settings. This is the default behavior."
+  echo "zqs enable-control-c-decorator - Creates a TRAPINT function to display '^C' when you type control-c instead of being silent. Default behavior."
+  echo "zqs disable-control-c-decorator - No longer creates a TRAPINT function to display '^C' when you type control-c."
   echo "zqs disable-omz-plugins - Set the quickstart to not load oh-my-zsh plugins if you're using the standard plugin list"
   echo "zqs enable-omz-plugins - Set the quickstart to load oh-my-zsh plugins if you're using the standard plugin list"
+  echo "zqs enable-ssh-askpass-require - Set the quickstart to prompt for your ssh passphrase on the command line."
+  echo "zqs disable-ssh-askpass-require - Set the quickstart to prompt for your ssh passphrase via a gui program. This is the default behavior"
   echo "zqs disable-ssh-key-listing - Set the quickstart to not display all the loaded ssh keys"
-  echo "zqs enable-ssh-key-listing - Set the quickstart to display all the loaded ssh keys. Default behavior."
+  echo "zqs enable-ssh-key-listing - Set the quickstart to display all the loaded ssh keys. This is the default behavior."
+  echo "zqs disable-ssh-key-loading - Set the quickstart to not load your ssh keys. Useful if you're storing them in a yubikey."
+  echo "zqs enable-ssh-key-loading - Set the quickstart to load your ssh keys if they aren't already in an ssh agent. This is the default behavior."
   echo "zqs disable-zmv-autoloading - Set the quickstart to not run 'autoload -U zmv'. Useful if you're using another plugin to handle it."
-  echo "zqs enable-zmv-autoloading - Set the quickstart to run 'autoload -U zmv'. Default behavior."
+  echo "zqs enable-zmv-autoloading - Set the quickstart to run 'autoload -U zmv'. This is the default behavior."
   echo "zqs delete-setting SETTINGNAME - Remove a zqs setting file"
   echo "zqs get-setting SETTINGNAME [optional default value] - load a zqs setting"
   echo "zqs set-setting SETTINGNAME value - Set an arbitrary zqs setting"
@@ -728,6 +782,13 @@ function zqs() {
     'enable-bindkey-handling')
       zsh-quickstart-enable-bindkey-handling
       ;;
+    'disable-control-c-decorator')
+      zqs-quickstart-disable-control-c-decorator
+      ;;
+    'enable-control-c-decorator')
+      zqs-quickstart-enable-control-c-decorator
+      ;;
+
     'disable-zmv-autoloading')
       _zqs-disable-zmv-autoloading
       ;;
@@ -740,11 +801,23 @@ function zqs() {
     'enable-omz-plugins')
       zsh-quickstart-enable-omz-plugins
       ;;
+    'enable-ssh-askpass-require')
+      zsh-quickstart-enable-ssh-askpass-require
+      ;;
+    'disable-ssh-askpass-require')
+      zsh-quickstart-disable-ssh-askpass-require
+      ;;
     'enable-ssh-key-listing')
       _zqs-set-setting list-ssh-keys true
       ;;
     'disable-ssh-key-listing')
       _zqs-set-setting list-ssh-keys false
+      ;;
+    'disable-ssh-key-loading')
+      _zqs-set-setting load-ssh-keys false
+      ;;
+    'enable-ssh-key-loading')
+      _zqs-set-setting load-ssh-keys true
       ;;
     'selfupdate')
       _update-zsh-quickstart
@@ -755,6 +828,9 @@ function zqs() {
       ;;
     'update-plugins')
       zgenom update
+      ;;
+    'cleanup')
+      zgenom clean
       ;;
     'delete-setting')
       shift
