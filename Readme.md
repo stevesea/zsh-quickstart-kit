@@ -25,8 +25,12 @@
   - [Behavior toggles](#behavior-toggles)
     - [zqs](#zqs)
       - [zqs check-for-updates](#zqs-check-for-updates)
-      - [zqs-disable-bindkey-handling](#zqs-disable-bindkey-handling)
-      - [zqs-enable-bindkey-handling](#zqs-enable-bindkey-handling)
+      - [zqs disable-bindkey-handling](#zqs-disable-bindkey-handling)
+      - [zqs disable-1password-agent](#zqs-disable-1password-agent)
+      - [zqs enable-1password-agent](#zqs-enable-1password-agent)
+      - [zqs enable-bindkey-handling](#zqs-enable-bindkey-handling)
+      - [zqs disable-diff-so-fancy](#zqs-disable-diff-so-fancy)
+      - [zqs enable-diff-so-fancy](#zqs-enable-diff-so-fancy)
       - [zqs disable-omz-plugins](#zqs-disable-omz-plugins)
       - [zqs enable-control-c-decorator](#zqs-enable-control-c-decorator)
       - [zqs disable-control-c-decorator](#zqs-disable-control-c-decorator)
@@ -39,6 +43,8 @@
       - [zqs-enable-ssh-key-loading](#zqs-enable-ssh-key-loading)
       - [zqs-disable-zmv-autoloading](#zqs-disable-zmv-autoloading)
       - [zqs-enable-zmv-autoloading](#zqs-enable-zmv-autoloading)
+      - [`zqs-disable-zsh-profiling](#zqs-disable-zsh-profiling)
+      - [`zqs-enable-zsh-profiling](#zqs-enable-zsh-profiling)
       - [zqs selfupdate](#zqs-selfupdate)
       - [zqs update](#zqs-update)
       - [zqs update-plugins](#zqs-update-plugins)
@@ -111,6 +117,7 @@ To enable the enhanced history search, you'll need to install [fzf](https://gith
 #### macOS
 
 <details><summary>macOS instructions</summary>
+
 1. Download iTerm2 from [http://www.iterm2.com](http://www.iterm2.com) (optional). In my opinion, it is considerably nicer than the stock Terminal application that comes with macOS. There is an RCE flaw in all versions of iTerm 2 before 3.3.6, so update if you're using an affected version.
 2. Install the current version of Homebrew from [http://brew.sh/](http://brew.sh/).
 3. Install GNU Stow with `brew install stow`
@@ -124,12 +131,17 @@ To enable the enhanced history search, you'll need to install [fzf](https://gith
 6. Install some Powerline-compatible or NerdFont fonts from one of the links in the Fonts section above.
     1. In iTerm 2, go to Preferences->Profile in your iTerm 2 preferences, then select one of the Powerline-compatible fonts you just installed.
     2. **Make sure you also specify a Powerline-compatible font for non-ASCII in your iTerm 2 preferences or the prompt separators and branch glyphs will show up garbled**.
-7. Install `fzf` with `brew install fzf`
+7. Install `fzf`
+    1. Install `fzf` with `brew install fzf`
+    2. Run the `sh "$(brew --prefix fzf)/install"` command to configure `fzf`
+    3. Press `Enter` (`y` default) for all questions except `Do you want to update your shell configuration files? ([y]/n)`. For this question, select `n` and press `Enter`.
+
 </details>
 
 #### Linux
 
 <details><summary>Linux instructions</summary>
+
 1. Switch your shell to `zsh` with `chsh -s /bin/zsh`
 2. Install GNU Stow - `sudo yum install -y stow` on Red Hat / CentOS systems, `sudo apt-get -y install stow` on Debian / Ubuntu.
 3. Install `fzf` - `sudo apt-get install -y fzf` on Debian / Ubuntu, do a manual install on Red Hat / Centos - instructions are at [fzf](https://github.com/junegunn/fzf).
@@ -143,6 +155,7 @@ If the Powerline symbols can't be seen or are garbled, try closing all instances
 If you still can’t see the new fonts, confirm that the font has been installed to a valid X font path.
 
 If you get garbled branch glyphs, make sure there isn't a separate font setting for non-ASCII characters in your terminal application that you also need to set to use a Powerline-compatible font. Konsole needs to be set to use UTF-8 encoding, for example.
+
 </details>
 
 ### Set up Zgenom and the starter kit
@@ -228,7 +241,7 @@ Running the following commands will toggle behavior the next time you start a sh
   * `zsh-quickstart-select-powerlevel10k` -  Switch to the [powerlevel10k](https://github.com/romkatv/powerlevel10k) prompt now used as the kit's default.
   * `zsh-quickstart-select-bullet-train` - Switch back to the [bullet-train](https://github.com/caiogondim/bullet-train.zsh) prompt originally used in the kit.
 * You can disable printing the list of `ssh` keys by executing `zqs disable-ssh-key-listing`.
-* `bash` prints `^C` when you're typing a command and hit control-c to cancel it, so it is easy to see it wasn't executed. By default, ZSH doesn't print the `^C`. I prefer seeing the `^C`, so by default, the quickstart traps `SIGINT` and prints the `^C`. You can disable this behavior by running `zqs enable-control-c-decorator`.
+* `bash` prints `^C` when you're typing a command and hit control-c to cancel it, so it is easy to see it wasn't executed. By default, ZSH doesn't print the `^C`. I prefer seeing the `^C`, so by default, the quickstart traps `SIGINT` and prints the `^C`. You can disable this behavior by running `zqs disable-control-c-decorator` and enable it with `zqs enable-control-c-decorator`.
 
 #### zqs
 
@@ -238,13 +251,29 @@ As of 2021-11-13, I've added a `zqs` command to start exposing some of the confi
 
 Updates the quickstart kit if it has been longer than seven days since the last update.
 
-##### zqs-disable-bindkey-handling
+##### zqs disable-bindkey-handling
 
 Disable `bindkey` setup and alias expansion in the quickstart `.zshrc` so people can use plugins like [globalias](https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/globalias) to handle it instead.
 
-##### zqs-enable-bindkey-handling
+##### zqs disable-1password-agent
+
+Disable using 1Password's `ssh` agent
+
+##### zqs enable-1password-agent
+
+Enable using 1Password's `ssh` agent starting with the next new ZSH session. This is the default behavior when `op` is in your `$PATH`.
+
+##### zqs enable-bindkey-handling
 
 Let the quickstart's `.zshrc` configure `bindkey` setup and alias expansion. This is the default behavior.
+
+##### zqs disable-diff-so-fancy
+
+Stop loading the [diff-so-fancy](https://github.com/so-fancy/diff-so-fancy) plugin starting with the next ZSH session.
+
+##### zqs enable-diff-so-fancy
+
+Start loading the [diff-so-fancy](https://github.com/so-fancy/diff-so-fancy) plugin starting with the next ZSH session. This is the default behavior.
 
 ##### zqs disable-omz-plugins
 
@@ -293,6 +322,14 @@ Don't run `autoload -U zmv` when creating a new session.
 ##### zqs-enable-zmv-autoloading
 
 Run `autoload -U zmv` when creating a new session. This is the default behavior.
+
+##### `zqs-disable-zsh-profiling
+
+Disable ZSH's profiler. This is the default.
+
+##### `zqs-enable-zsh-profiling
+
+Turn on ZSH's profiler
 
 ##### zqs selfupdate
 
