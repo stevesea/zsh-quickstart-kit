@@ -5,16 +5,13 @@ from time to time, I decided forking was easier.
 
 brew setup
 ```shell
-brew tap homebrew/cask
-brew tap homebrew/cask-fonts
-brew tap instrumenta/instrumenta
 
 brew install \
     age \
-    asdf \
     bash \
     bpython \
     dive \
+    eza \
     fzf \
     gh \
     gh \
@@ -26,11 +23,11 @@ brew install \
     httpie \
     jq \
     k9s \
-    kubernets-cli \
+    kubernetes-cli \
     kubectx \
-    kubeval \
     maven \
     mercurial \
+    neovim \
     pipenv \
     poetry \
     python-yq \
@@ -47,17 +44,14 @@ brew install \
     xz \
     zsh
 
-brew install \
+brew install --cask \
     font-atkinson-hyperlegible \
-    font-cascadia-code \
-    font-cascadia-mono \
     font-fira-code-nerd-font \
     font-fira-mono-nerd-font \
-    font-fira-sans \
-    font-inconsolata-for-powerline \
-    font-source-code-pro \
-    font-source-sans-pro \
-    font-space-mono-nerd-font
+    font-fira-sans 
+
+
+brew install --cask krita iterm2
 ```
 
 zsh setup
@@ -74,3 +68,4 @@ stow --target=/Users/steve zsh
 stow --target=/Users/steve/.zshrc.d zshrc.d
 stow --target=/Users/steve p10k
 ```
+
