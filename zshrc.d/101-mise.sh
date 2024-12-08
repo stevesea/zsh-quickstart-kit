@@ -1,4 +1,9 @@
 
-if [ -f ~/.local/bin/mise  ]; then
-    eval "$(~/.local/bin/mise activate zsh)"
+if [ -x /opt/homebrew/bin/mise  ]; then
+    # ~/.zprofile
+    if [[ "$TERM_PROGRAM" == "vscode" ]]; then
+        eval "$(/opt/homebrew/bin/mise activate zsh --shims)"
+    elif; then
+        eval "$(/opt/homebrew/bin/mise activate zsh)"
+    fi
 fi
