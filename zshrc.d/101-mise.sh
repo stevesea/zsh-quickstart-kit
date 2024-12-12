@@ -1,6 +1,7 @@
 
 if [ -x /opt/homebrew/bin/mise  ]; then
-    # ~/.zprofile
+
+    # see https://mise.jdx.dev/ide-integration.html
     if [[ "$TERM_PROGRAM" == "vscode" ]]; then
         eval "$(/opt/homebrew/bin/mise activate zsh --shims)"
     elif; then
