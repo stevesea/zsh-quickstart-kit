@@ -77,6 +77,8 @@ load-starter-plugin-list() {
   # copy as a starting point. This keeps you from having to maintain a fork of
   # the quickstart kit.
 
+  zgenom load Aloxaf/fzf-tab
+
   # If zsh-syntax-highlighting is bundled after zsh-history-substring-search,
   # they break, so get the order right.
   zgenom load zdharma-continuum/fast-syntax-highlighting
@@ -121,7 +123,9 @@ load-starter-plugin-list() {
   fi
 
   # Supercharge your history search with fzf
-  zgenom load unixorn/fzf-zsh-plugin
+  if [[ "$(_zqs-get-setting load-fzf-zsh-plugin true)" == 'true' ]]; then
+    zgenom load unixorn/fzf-zsh-plugin
+  fi
 
   # Add my bitbucket git helpers plugin.
   zgenom load unixorn/bitbucket-git-helpers.plugin.zsh
@@ -209,7 +213,9 @@ load-starter-plugin-list() {
   # k is a zsh script / plugin to make directory listings more readable,
   # adding a bit of color and some git status information on files and
   # directories.
-  #zgenom load supercrabtree/k
+  if [[ $(_zqs-get-setting enable-k-plugin true) == 'true' ]]; then
+    zgenom load supercrabtree/k
+  fi
 
   # Be compatible with the old settings files for now
   if [[ -f ${ZDOTDIR:-$HOME}/.zsh-quickstart-use-bullet-train ]] || [[ $(_zqs-get-setting bullet-train false) == 'true' ]]; then

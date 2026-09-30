@@ -96,6 +96,7 @@ function load-shell-fragments() {
   else
     if [[ -d "$1" ]]; then
       if [ -n "$(/bin/ls -A "$1")" ]; then
+        rm -f "$1"/.*.un\~(N)
         for _zqs_fragment in $(/bin/ls -A "$1")
         do
           if [ -r "$1/$_zqs_fragment" ]; then
@@ -219,6 +220,14 @@ function zsh-quickstart-enable-bindkey-handling() {
   _zqs-set-setting handle-bindkeys true
 }
 
+function zsh-quickstart-disable-fzf-zsh-plugin() {
+  _zqs-set-setting load-fzf-zsh-plugin false
+}
+
+function zsh-quickstart-enable-fzf-zsh-plugin() {
+  _zqs-set-setting load-fzf-zsh-plugin true
+}
+
 function zqs-quickstart-disable-control-c-decorator() {
   _zqs-set-setting control-c-decorator false
   echo "Disabled the control-c decorator in future zsh sessions."
@@ -272,6 +281,14 @@ function _zqs-disable-diff-so-fancy() {
   _zqs-set-setting diff-so-fancy false
 }
 
+function _zqs-enable-k-plugin() {
+  _zqs-set-setting enable-k-plugin true
+}
+
+function _zqs-disable-k-plugin() {
+  _zqs-set-setting enable-k-plugin false
+}
+
 function zsh-quickstart-check-for-ssh-askpass() {
   if ! can_haz ssh-askpass; then
     echo "If you disable the ssh-askpass-require feature, you'll"
@@ -308,6 +325,7 @@ for path_candidate in /Applications/Xcode.app/Contents/Developer/usr/bin \
   ~/.cargo/bin \
   ~/.linuxbrew/bin \
   ~/.linuxbrew/sbin \
+  ~/.local/bin \
   ~/.rbenv/bin \
   ~/bin \
   ~/src/gocode/bin \
@@ -826,6 +844,7 @@ function zqs-help() {
   echo "zqs update - Update the quickstart kit and all your plugins"
   echo "zqs update-plugins - Update your plugins"
   echo "zqs cleanup - Cleanup unused plugins after removing them from the list"
+  echo "zqs compdef-as - Set a command to use the same tab completion function as another command"
   echo ""
   echo "Quickstart settings commands:"
 
@@ -835,8 +854,14 @@ function zqs-help() {
   echo "zqs disable-bindkey-handling - Set the quickstart to not touch any bindkey settings. Useful if you're using another plugin to handle it."
   echo "zqs enable-bindkey-handling - Set the quickstart to configure your bindkey settings. This is the default behavior."
 
+  echo "zqs disable-fzf-zsh-plugin - Don't load the unixorn/fzf-zsh-plugin"
+  echo "zqs enable-fzf-zsh-plugin - Load the unixorn/fzf-zsh-plugin (default)"
+
   echo "zqs enable-control-c-decorator - Creates a TRAPINT function to display '^C' when you type control-c instead of being silent. Default behavior."
   echo "zqs disable-control-c-decorator - No longer creates a TRAPINT function to display '^C' when you type control-c."
+
+  echo "zqs enable-k-plugin - Load the k ZSH plugin (defaults to true)"
+  echo "zqs disable-k-plugin - Don't load the k ZSH plugin"
 
   echo "zqs enable-diff-so-fancy - Load the diff-so-fancy ZSH plugin (defaults to true)"
   echo "zqs disable-diff-so-fancy - Don't load the diff-so-fancy ZSH plugin"
@@ -870,6 +895,10 @@ function zqs() {
 # Internal commands
     'cleanup')
       zgenom clean
+      ;;
+
+    'compdef-as')
+      zqs-compdef-as $@
       ;;
 
     'delete-setting')
@@ -920,6 +949,14 @@ function zqs() {
       zsh-quickstart-enable-bindkey-handling
       ;;
 
+    'disable-fzf-zsh-plugin')
+      zsh-quickstart-disable-fzf-zsh-plugin
+      ;;
+
+    'enable-fzf-zsh-plugin')
+      zsh-quickstart-enable-fzf-zsh-plugin
+      ;;
+
     'disable-control-c-decorator')
       zqs-quickstart-disable-control-c-decorator
       ;;
@@ -944,6 +981,14 @@ function zqs() {
     'enable-diff-so-fancy')
       echo "Enabling diff-so-fancy plugin. It will be loaded the next time you start a ZSH session."
       _zqs-set-setting diff-so-fancy true
+      ;;
+
+    'disable-k-plugin')
+      _zqs-disable-k-plugin
+      ;;
+
+    'enable-k-plugin')
+      _zqs-enable-k-plugin
       ;;
 
     'disable-zmv-autoloading')
@@ -1009,4 +1054,4 @@ if [[ -f ${ZDOTDIR:-$HOME}/.zqs-zprof-enabled ]]; then
   zprof
 fi
 
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+[ -f ~/.fzf.zsh ] && [[ "$(_zqs-get-setting load-fzf-zsh-plugin true)" == 'true' ]] && source ~/.fzf.zsh

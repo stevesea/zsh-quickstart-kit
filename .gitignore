@@ -21,3 +21,7 @@
 # dc = don't commit
 *.dc.*
 *.log
+
+# It is necessary for the update to work correctly, if there are added scripts.
+zsh/.zshrc.d
+!zsh/.zshrc.d/001-load-mise-if-present
